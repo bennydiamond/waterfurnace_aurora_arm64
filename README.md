@@ -4,24 +4,40 @@ Automated native `linux/arm64` Docker builds for the [waterfurnace_aurora](https
 
 The upstream project provides excellent support for interacting with WaterFurnace and GeoSmart geothermal units via an FTDI serial adapter, but currently only publishes `amd64` Docker images. This repository solves that by tracking the upstream GitHub releases and automatically building and publishing an `arm64` container to the GitHub Container Registry (GHCR) whenever a new version is tagged.
 
-## Usage
+## Deployment
 
-You can deploy this via Docker Compose or Portainer. Be sure to update the `devices` mapping to match your specific serial adapter and adjust the `MQTT` connection string for your broker.
+This repository is designed to be deployed directly via **Portainer Stacks** or **Docker Compose** using environment variables to keep the configuration portable and hardware-agnostic.
 
-```yaml
-version: '3.8'
+### Deploy via Portainer (Recommended)
 
-services:
-  waterfurnace_aurora:
-    container_name: waterfurnace_aurora
-    image: ghcr.io/bennydiamond/waterfurnace_aurora:latest
-    restart: unless-stopped
-    devices:
-      # Use /dev/serial/by-id/ to prevent path changes across reboots
-      - '/dev/serial/by-id/usb-FTDI_Chipi-X_FT2HOLHM-if00-port0:/dev/waterfurnace'
-    environment:
-      - TTY=/dev/waterfurnace
-      - MQTT=mqtt://user:password@broker_ip:1883
+1. Go to **Stacks** -> **Add stack**.
+2. Select **Repository** as the build method.
+3. Enter the Repository URL: `https://github.com/bennydiamond/waterfurnace_aurora_arm64`
+4. Under **Environment variables**, add the following keys:
+
+| Variable | Example Value | Description |
+| :--- | :--- | :--- |
+| `SERIAL_DEVICE` | `/dev/serial/by-id/usb-FTDI_FT2HOLHM-if00-port0` | Path to your FTDI adapter on the host. |
+| `MQTT_URL` | `mqtt://user:pass@mosquitto:1883` | Your MQTT broker connection string. |
+| `EXTERNAL_NETWORK` | `mqtt-network` | The name of the existing Docker network to join. |
+
+5. Click **Deploy the stack**.
+
+### Manual Docker Compose
+
+If running manually, create a `.env` file in the same directory as your `docker-compose.yml`:
+
+```env
+SERIAL_DEVICE=/dev/serial/by-id/usb-FTDI_Chipi-X_FT2HOLHM-if00-port0
+MQTT_URL=mqtt://aurora:aurora@mosquitto:1883
+EXTERNAL_NETWORK=mqtt-network
+```
+
+Then run:
+
+```bash
+docker-compose up -d
+```
 
 
 ## Credits

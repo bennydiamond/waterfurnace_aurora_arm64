@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  waterfurnace_aurora:
+    container_name: waterfurnace_aurora
+    image: ghcr.io/bennydiamond/waterfurnace_aurora:latest
+    restart: unless-stopped
+    networks:
+      - aurora-net
+    devices:
+      # Format: HOST_PATH:CONTAINER_PATH
+      - '${SERIAL_DEVICE:-/dev/ttyUSB0}:/dev/waterfurnace'
+    environment:
+      - TTY=/dev/waterfurnace
+      - MQTT=${MQTT_URL}
+
+networks:
+  aurora-net:
+    external:
+      name: ${EXTERNAL_NETWORK:-bridge}
